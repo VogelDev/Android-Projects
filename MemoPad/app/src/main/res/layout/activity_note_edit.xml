@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical" android:layout_width="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
     android:layout_height="match_parent">
 
     <include layout="@layout/toolbar"/>
@@ -21,7 +23,6 @@
                 android:layout_height="wrap_content"
                 android:hint="Title"
                 />
-
         </android.support.design.widget.TextInputLayout>
         <android.support.design.widget.TextInputLayout
             android:layout_width="match_parent"
@@ -35,8 +36,43 @@
                 android:minLines="5"
                 android:gravity="start|top"
                 />
-
         </android.support.design.widget.TextInputLayout>
+
+        <android.support.design.widget.FloatingActionButton
+            android:id="@+id/fab_task"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:minHeight="@dimen/abc_action_button_min_height_material"
+            android:minWidth="@dimen/abc_action_button_min_width_material"
+            android:layout_gravity="bottom|end"
+            android:layout_margin="@dimen/activity_vertical_margin"
+            android:elevation="6dp"
+            app:borderWidth="0dp"
+            android:src="@drawable/ic_content_add"
+            android:visibility="invisible"
+            />
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:padding="16dp">
+
+            <ListView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/listView_task"
+                android:visibility="invisible"
+                android:layout_alignParentTop="true"
+                android:layout_alignParentStart="true" />
+            <Spinner
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/spinnerType"
+                android:textSize="24pt"
+                android:layout_alignParentBottom="true"
+                android:layout_alignParentStart="true"
+                android:layout_alignParentEnd="true"  />
+        </RelativeLayout>
+
     </LinearLayout>
 
 </LinearLayout>

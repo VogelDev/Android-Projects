@@ -1,4 +1,9 @@
 <resources>
     <string name="app_name">MemoPad</string>
     <string name="edit_memo">Edit Memo</string>
+
+    <string-array name="edit_types">
+        <item>Memo</item>
+        <item>Task List</item>
+    </string-array>
 </resources>
