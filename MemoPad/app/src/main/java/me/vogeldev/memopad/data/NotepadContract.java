@@ -20,9 +20,14 @@ public final class NotepadContract {
         public static final String CONTENT_TYPE = "vnd.android.cursor.dir/" + AUTHORITY + "/" + PATH_NOTE;
         public static final String CONTENT_ITEM_TYPE = "vnd.android.cursor.item/" + AUTHORITY + "/" + PATH_NOTE;
 
-        public static final String TABLE_NAME = "note";
+        public static final String TABLE_NAME_NOTE = "note";
 
         public static final String COLUMN_TITLE = "title";
         public static final String COLUMN_DESCRIPTION = "description";
+
+        public static final String TABLE_NAME_TASKS = "tasks";
+
+        public static final String COLUMN_NOTE_ID = "note_id";
+        public static final String COLUMN_TASK = "task";
     }
 }

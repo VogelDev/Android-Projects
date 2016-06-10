@@ -9,7 +9,6 @@ import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteQueryBuilder;
 import android.net.Uri;
-import android.provider.ContactsContract;
 import android.support.annotation.Nullable;
 
 /**
@@ -21,6 +20,7 @@ public class NotepadProvider extends ContentProvider {
 
     private static  final int NOTE = 100;
     private static  final int NOTE_ID = 101;
+    private static final int TASK = 102;
 
     private NotepadDbHelper openHelper;
 
@@ -28,7 +28,7 @@ public class NotepadProvider extends ContentProvider {
 
     static {
         queryBuilder = new SQLiteQueryBuilder();
-        queryBuilder.setTables(NotepadContract.NoteEntry.TABLE_NAME);
+        queryBuilder.setTables(NotepadContract.NoteEntry.TABLE_NAME_NOTE);
     }
 
     private static UriMatcher buildUriMatcher() {
@@ -37,6 +37,7 @@ public class NotepadProvider extends ContentProvider {
 
         matcher.addURI(authority, NotepadContract.PATH_NOTE, NOTE);
         matcher.addURI(authority, NotepadContract.PATH_NOTE + "/#", NOTE_ID);
+        matcher.addURI(authority, NotepadContract.PATH_NOTE + "/#", TASK);
 
         return matcher;
     }
@@ -55,7 +56,7 @@ public class NotepadProvider extends ContentProvider {
 
         switch(uriMatcher.match(uri)){
             case NOTE:
-                cursor = db.query(NotepadContract.NoteEntry.TABLE_NAME,
+                cursor = db.query(NotepadContract.NoteEntry.TABLE_NAME_NOTE,
                         projection,
                         selection,
                         selectionArgs,
@@ -64,9 +65,18 @@ public class NotepadProvider extends ContentProvider {
                         sortOrder);
                 break;
             case NOTE_ID:
-                cursor = db.query(NotepadContract.NoteEntry.TABLE_NAME,
+                cursor = db.query(NotepadContract.NoteEntry.TABLE_NAME_NOTE,
                         projection,
                         NotepadContract.NoteEntry._ID + "='" + ContentUris.parseId(uri) + "'",
+                        selectionArgs,
+                        null,
+                        null,
+                        sortOrder);
+                break;
+            case TASK:
+                cursor = db.query(NotepadContract.NoteEntry.TABLE_NAME_TASKS,
+                        projection,
+                        NotepadContract.NoteEntry.COLUMN_NOTE_ID + "='" + ContentUris.parseId(uri) + "'",
                         selectionArgs,
                         null,
                         null,
@@ -88,6 +98,8 @@ public class NotepadProvider extends ContentProvider {
                 return NotepadContract.NoteEntry.CONTENT_TYPE;
             case NOTE_ID:
                 return NotepadContract.NoteEntry.CONTENT_ITEM_TYPE;
+            case TASK:
+                return NotepadContract.NoteEntry.CONTENT_ITEM_TYPE;
             default:
                 throw new UnsupportedOperationException("Unknown URI: " + uri);
         }
@@ -98,10 +110,16 @@ public class NotepadProvider extends ContentProvider {
     public Uri insert(Uri uri, ContentValues values) {
         final SQLiteDatabase db = openHelper.getWritableDatabase();
         Uri returnUri;
+        long _id;
 
         switch (uriMatcher.match(uri)){
             case NOTE:
-                long _id = db.insert(NotepadContract.NoteEntry.TABLE_NAME, null, values);
+                _id = db.insert(NotepadContract.NoteEntry.TABLE_NAME_NOTE, null, values);
+                if(_id > 0) returnUri = ContentUris.withAppendedId(NotepadContract.NoteEntry.CONTENT_URI, _id);
+                else throw new SQLException("Failed to insert row into " + uri);
+                break;
+            case TASK:
+                _id = db.insert(NotepadContract.NoteEntry.TABLE_NAME_TASKS, null, values);
                 if(_id > 0) returnUri = ContentUris.withAppendedId(NotepadContract.NoteEntry.CONTENT_URI, _id);
                 else throw new SQLException("Failed to insert row into " + uri);
                 break;
@@ -120,10 +138,14 @@ public class NotepadProvider extends ContentProvider {
 
         switch (uriMatcher.match(uri)) {
             case NOTE:
-                rowsDeleted = db.delete(NotepadContract.NoteEntry.TABLE_NAME, selection, selectionArgs);
+                rowsDeleted = db.delete(NotepadContract.NoteEntry.TABLE_NAME_NOTE, selection, selectionArgs);
                 break;
             case NOTE_ID:
-                rowsDeleted = db.delete(NotepadContract.NoteEntry.TABLE_NAME,
+                rowsDeleted = db.delete(NotepadContract.NoteEntry.TABLE_NAME_NOTE,
+                        NotepadContract.NoteEntry._ID + "='" + ContentUris.parseId(uri) + "'",
+                        selectionArgs);
+            case TASK:
+                rowsDeleted = db.delete(NotepadContract.NoteEntry.TABLE_NAME_TASKS,
                         NotepadContract.NoteEntry._ID + "='" + ContentUris.parseId(uri) + "'",
                         selectionArgs);
                 break;
@@ -145,10 +167,10 @@ public class NotepadProvider extends ContentProvider {
 
         switch (uriMatcher.match(uri)) {
             case NOTE:
-                rowsUpdated = db.update(NotepadContract.NoteEntry.TABLE_NAME, values, selection, selectionArgs);
+                rowsUpdated = db.update(NotepadContract.NoteEntry.TABLE_NAME_NOTE, values, selection, selectionArgs);
                 break;
             case NOTE_ID:
-                rowsUpdated = db.update(NotepadContract.NoteEntry.TABLE_NAME, values,
+                rowsUpdated = db.update(NotepadContract.NoteEntry.TABLE_NAME_NOTE, values,
                         NotepadContract.NoteEntry._ID + "='" + ContentUris.parseId(uri) + "'",
                         selectionArgs);
                 break;
