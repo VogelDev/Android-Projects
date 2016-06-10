@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">MemoPad</string>
+    <string name="edit_memo">Edit Memo</string>
 </resources>
