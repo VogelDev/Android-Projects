@@ -8,10 +8,11 @@ import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteQueryBuilder;
-import android.database.sqlite.SQLiteStatement;
 import android.net.Uri;
 import android.support.annotation.Nullable;
 import android.util.Log;
+
+import java.util.Arrays;
 
 /**
  * Created by Vogel on 6/5/2016.
@@ -22,7 +23,9 @@ public class NotepadProvider extends ContentProvider {
 
     private static  final int NOTE = 100;
     private static  final int NOTE_ID = 101;
+
     private static final int TASK = 102;
+    private static final int TASK_ID = 103;
 
     private NotepadDbHelper openHelper;
 
@@ -39,8 +42,9 @@ public class NotepadProvider extends ContentProvider {
         final String authority = NotepadContract.AUTHORITY;
 
         matcher.addURI(authority, NotepadContract.PATH_NOTE, NOTE);
-        matcher.addURI(authority, NotepadContract.PATH_NOTE + "/", NOTE_ID);
-        matcher.addURI(authority, NotepadContract.PATH_NOTE + "/", TASK);
+        matcher.addURI(authority, NotepadContract.PATH_NOTE + "/#", NOTE_ID);
+        matcher.addURI(authority, NotepadContract.PATH_TASK, TASK);
+        matcher.addURI(authority, NotepadContract.PATH_TASK + "/#", TASK_ID);
 
         return matcher;
     }
@@ -111,11 +115,13 @@ public class NotepadProvider extends ContentProvider {
     public String getType(Uri uri) {
         switch(uriMatcher.match(uri)){
             case NOTE:
-                return NotepadContract.NoteEntry.CONTENT_TYPE;
+                return NotepadContract.NoteEntry.NOTE_CONTENT_TYPE;
             case NOTE_ID:
-                return NotepadContract.NoteEntry.CONTENT_ITEM_TYPE;
+                return NotepadContract.NoteEntry.NOTE_CONTENT_ITEM_TYPE;
             case TASK:
-                return NotepadContract.NoteEntry.CONTENT_ITEM_TYPE;
+                return NotepadContract.NoteEntry.TASK_CONTENT_ITEM_TYPE;
+            case TASK_ID:
+                return NotepadContract.NoteEntry.TASK_CONTENT_TYPE;
             default:
                 throw new UnsupportedOperationException("Unknown URI: " + uri);
         }
@@ -131,12 +137,12 @@ public class NotepadProvider extends ContentProvider {
         switch (uriMatcher.match(uri)){
             case NOTE:
                 _id = db.insert(NotepadContract.NoteEntry.TABLE_NAME_NOTE, null, values);
-                if(_id > 0) returnUri = ContentUris.withAppendedId(NotepadContract.NoteEntry.CONTENT_URI, _id);
+                if(_id > 0) returnUri = ContentUris.withAppendedId(NotepadContract.NoteEntry.NOTE_CONTENT_URI, _id);
                 else throw new SQLException("Failed to insert row into " + uri);
                 break;
             case TASK:
                 _id = db.insert(NotepadContract.NoteEntry.TABLE_NAME_TASKS, null, values);
-                if(_id > 0) returnUri = ContentUris.withAppendedId(NotepadContract.NoteEntry.CONTENT_URI, _id);
+                if(_id > 0) returnUri = ContentUris.withAppendedId(NotepadContract.NoteEntry.NOTE_CONTENT_URI, _id);
                 else throw new SQLException("Failed to insert row into " + uri);
                 break;
             default:
@@ -152,6 +158,9 @@ public class NotepadProvider extends ContentProvider {
         final SQLiteDatabase db = openHelper.getWritableDatabase();
         int rowsDeleted;
 
+        Log.i("DELETE_SELECTION", selection);
+        Log.i("DELETE_SELECTIONARGS", Arrays.toString(selectionArgs));
+
         switch (uriMatcher.match(uri)) {
             case NOTE:
                 rowsDeleted = db.delete(NotepadContract.NoteEntry.TABLE_NAME_NOTE, selection, selectionArgs);
@@ -160,7 +169,7 @@ public class NotepadProvider extends ContentProvider {
                 rowsDeleted = db.delete(NotepadContract.NoteEntry.TABLE_NAME_NOTE,
                         NotepadContract.NoteEntry._ID + "='" + ContentUris.parseId(uri) + "'",
                         selectionArgs);
-            case TASK:
+            case TASK_ID:
                 rowsDeleted = db.delete(NotepadContract.NoteEntry.TABLE_NAME_TASKS,
                         NotepadContract.NoteEntry._ID + "='" + ContentUris.parseId(uri) + "'",
                         selectionArgs);

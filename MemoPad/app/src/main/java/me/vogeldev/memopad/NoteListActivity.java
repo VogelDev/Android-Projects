@@ -61,7 +61,7 @@ public class NoteListActivity extends AppCompatActivity implements LoaderManager
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
         switch (id){
             case NOTES_LOADER:
-                return new CursorLoader(this, NotepadContract.NoteEntry.CONTENT_URI, PROJECTION, null, null, null);
+                return new CursorLoader(this, NotepadContract.NoteEntry.NOTE_CONTENT_URI, PROJECTION, null, null, null);
             default:
                 return null;
         }
@@ -109,7 +109,7 @@ public class NoteListActivity extends AppCompatActivity implements LoaderManager
                 for(long id : selectedIds){
                     // Deletes the given note from the db
                     getContentResolver().delete(
-                            ContentUris.withAppendedId(NotepadContract.NoteEntry.CONTENT_URI, id),
+                            ContentUris.withAppendedId(NotepadContract.NoteEntry.NOTE_CONTENT_URI, id),
                             null,
                             null
                     );
@@ -143,7 +143,7 @@ public class NoteListActivity extends AppCompatActivity implements LoaderManager
         // These do the same thing, but since we have a URI we can use the setData option
         // intent.putExtra(NotepadContract.NoteEntry._ID, id);
 
-        intent.setData(ContentUris.withAppendedId(NotepadContract.NoteEntry.CONTENT_URI, id));
+        intent.setData(ContentUris.withAppendedId(NotepadContract.NoteEntry.NOTE_CONTENT_URI, id));
 
         intent.setAction(NoteEditActivity.ACTION_EDIT);
         startActivity(intent);

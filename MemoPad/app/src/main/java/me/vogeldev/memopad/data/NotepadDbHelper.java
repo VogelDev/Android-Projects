@@ -11,7 +11,7 @@ import android.util.Log;
  */
 public class NotepadDbHelper extends SQLiteOpenHelper {
 
-    private static final int DATABASE_VERSION = 3;
+    private static final int DATABASE_VERSION = 4;
     private static final String DATABASE_NAME = "notepad.db";
 
     public NotepadDbHelper(Context context) {

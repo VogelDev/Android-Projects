@@ -1,12 +1,17 @@
 package me.vogeldev.memopad;
 
+import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.CursorLoader;
+import android.support.v4.content.Loader;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -16,25 +21,30 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.SimpleCursorAdapter;
 import android.widget.Spinner;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 
 import me.vogeldev.memopad.data.NotepadContract;
+import me.vogeldev.memopad.data.NotepadDbHelper;
 
 /**
  * Created by Vogel on 6/9/2016.
  */
-public class NoteEditActivity extends AppCompatActivity implements AdapterView.OnItemClickListener {
+public class NoteEditActivity extends AppCompatActivity implements AdapterView.OnItemClickListener, LoaderManager.LoaderCallbacks<Cursor> {
 
     public static final String ACTION_NEW = "action_new";
     public static final String ACTION_EDIT = "action_edit";
+    private static final int TASKS_LOADER = 1;
+    private static final String[] PROJECTION = {NotepadContract.NoteEntry._ID, NotepadContract.NoteEntry.COLUMN_TASK};
 
     private Spinner spinnerType;
 
     ArrayAdapter<String> adapter;
     ArrayList<String> tasks;
+    private SimpleCursorAdapter cursorAdapter;
 
     private EditText etTitle;
     private EditText etDesc;
@@ -55,7 +65,7 @@ public class NoteEditActivity extends AppCompatActivity implements AdapterView.O
             ContentValues initialValues = new ContentValues();
             initialValues.put(NotepadContract.NoteEntry.COLUMN_TITLE, "");
             initialValues.put(NotepadContract.NoteEntry.COLUMN_DESCRIPTION, "");
-            note = getContentResolver().insert(NotepadContract.NoteEntry.CONTENT_URI, initialValues);
+            note = getContentResolver().insert(NotepadContract.NoteEntry.NOTE_CONTENT_URI, initialValues);
         }else if(intent.getAction().equals(ACTION_EDIT)){
             note = intent.getData();
         }
@@ -91,10 +101,28 @@ public class NoteEditActivity extends AppCompatActivity implements AdapterView.O
         tasks = new ArrayList<>();
         adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_activated_1, tasks);
 
-        ListView listView = (ListView)findViewById(R.id.listView_task);
+        getSupportLoaderManager().initLoader(TASKS_LOADER, null, this);
+        
+        final ListView listView = (ListView)findViewById(R.id.listView_task);
         listView.setAdapter(adapter);
         listView.setOnItemClickListener(this);
 
+        SQLiteDatabase db = new NotepadDbHelper(this).getReadableDatabase();
+        cursor = db.query("task", null, "note_id = " + id, null, null, null, "_ID");
+        Log.i("DB_CHECK", Arrays.toString(cursor.getColumnNames()));
+        Log.i("DB_CHECK", String.valueOf(cursor.getCount()));
+        if(cursor.getCount() > 0){
+            cursor.moveToFirst();
+
+            do{
+                tasks.add(cursor.getString(2));
+                
+            }while(cursor.moveToNext());
+
+            adapter.notifyDataSetChanged();
+        }
+        cursor.close();
+        db.close();
         etTask = (EditText)findViewById(R.id.et_addTask);
 
         final FloatingActionButton fab = (FloatingActionButton)findViewById(R.id.fab_task);
@@ -106,7 +134,7 @@ public class NoteEditActivity extends AppCompatActivity implements AdapterView.O
                 ContentValues values = new ContentValues();
                 values.put(NotepadContract.NoteEntry.COLUMN_NOTE_ID, id);
                 values.put(NotepadContract.NoteEntry.COLUMN_TASK, etTask.getText().toString());
-                getContentResolver().update(NotepadContract.NoteEntry.TABLE_NAME_TASKS, values, null, null);
+                getContentResolver().insert(NotepadContract.NoteEntry.TASK_CONTENT_URI, values);
 
                 adapter.notifyDataSetChanged();
             }
@@ -130,10 +158,12 @@ public class NoteEditActivity extends AppCompatActivity implements AdapterView.O
                         fab.setVisibility(View.INVISIBLE);
                         etTask.setHint("");
                         etTask.setVisibility(View.GONE);
+                        listView.setVisibility(View.GONE);
                         break;
                     case 1:
                         fab.setVisibility(View.VISIBLE);
                         etTask.setVisibility(View.VISIBLE);
+                        listView.setVisibility(View.VISIBLE);
                         break;
                 }
             }
@@ -176,6 +206,39 @@ public class NoteEditActivity extends AppCompatActivity implements AdapterView.O
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         tasks.remove(position);
+
+        Log.i("Task ID", String.valueOf(id));
+
+        // Deletes the given note from the db
+        getContentResolver().delete(
+                ContentUris.withAppendedId(NotepadContract.NoteEntry.TASK_CONTENT_URI, id),
+                null,
+                null
+        );
+
         adapter.notifyDataSetChanged();
+    }
+
+    @Override
+    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+        switch (id){
+            case TASKS_LOADER:
+                return new CursorLoader(this, NotepadContract.NoteEntry.TASK_CONTENT_URI, PROJECTION, null, null, null);
+            default:
+                return null;
+        }
+    }
+
+    @Override
+    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+        cursorAdapter.changeCursor(data);
+
+        //  This will swap two cursors with one another, but does not close cursor
+        //  adapter.swapCursor(data);
+    }
+
+    @Override
+    public void onLoaderReset(Loader<Cursor> loader) {
+        cursorAdapter.changeCursor(null);
     }
 }
