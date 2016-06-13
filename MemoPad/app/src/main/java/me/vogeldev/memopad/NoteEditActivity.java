@@ -9,6 +9,7 @@ import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
@@ -18,6 +19,7 @@ import android.widget.ListView;
 import android.widget.Spinner;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import me.vogeldev.memopad.data.NotepadContract;
 
@@ -36,8 +38,10 @@ public class NoteEditActivity extends AppCompatActivity implements AdapterView.O
 
     private EditText etTitle;
     private EditText etDesc;
+    private EditText etTask;
 
     private Uri note;
+    private long id;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,6 +60,10 @@ public class NoteEditActivity extends AppCompatActivity implements AdapterView.O
             note = intent.getData();
         }
 
+        id = Long.valueOf(note.getLastPathSegment());
+
+        Log.i("table", note.toString());
+
         etTitle = (EditText)findViewById(R.id.et_title);
         etDesc = (EditText)findViewById(R.id.et_description);
 
@@ -63,6 +71,8 @@ public class NoteEditActivity extends AppCompatActivity implements AdapterView.O
         // This has the potential to fail, but since we're either pulling a note or creating
         // a new one, we always have an entry from the db
         cursor.moveToFirst();
+
+        Log.i("table", Arrays.toString(cursor.getColumnNames()));
 
         // get information saved in db for this note and set form to appropriate values
         etTitle.setText(cursor.getString(cursor.getColumnIndexOrThrow(NotepadContract.NoteEntry.COLUMN_TITLE)));
@@ -85,14 +95,23 @@ public class NoteEditActivity extends AppCompatActivity implements AdapterView.O
         listView.setAdapter(adapter);
         listView.setOnItemClickListener(this);
 
-        FloatingActionButton fab = (FloatingActionButton)findViewById(R.id.fab_task);
+        etTask = (EditText)findViewById(R.id.et_addTask);
+
+        final FloatingActionButton fab = (FloatingActionButton)findViewById(R.id.fab_task);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                tasks.add(etDesc.getText().toString());
+                tasks.add(etTask.getText().toString());
+
+                ContentValues values = new ContentValues();
+                values.put(NotepadContract.NoteEntry.COLUMN_NOTE_ID, id);
+                values.put(NotepadContract.NoteEntry.COLUMN_TASK, etTask.getText().toString());
+                getContentResolver().update(NotepadContract.NoteEntry.TABLE_NAME_TASKS, values, null, null);
+
                 adapter.notifyDataSetChanged();
             }
         });
+
 
         // Create array adapter for unit spinners based on string array in the strings.xml file
         ArrayAdapter<String> spinAdapter = new ArrayAdapter<>(this,
@@ -101,6 +120,29 @@ public class NoteEditActivity extends AppCompatActivity implements AdapterView.O
         spinAdapter.setDropDownViewResource(android.R.layout.simple_dropdown_item_1line);
         spinnerType = (Spinner)findViewById(R.id.spinnerType);
         spinnerType.setAdapter(spinAdapter);
+
+        spinnerType.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parentView, View selectedItemView, int position, long id) {
+
+                switch(position){
+                    case 0:
+                        fab.setVisibility(View.INVISIBLE);
+                        etTask.setHint("");
+                        etTask.setVisibility(View.GONE);
+                        break;
+                    case 1:
+                        fab.setVisibility(View.VISIBLE);
+                        etTask.setVisibility(View.VISIBLE);
+                        break;
+                }
+            }
+
+            @Override
+            // Our spinner has no option for no selection
+            public void onNothingSelected(AdapterView<?> parentView) {}
+
+        });
     }
 
     @Override

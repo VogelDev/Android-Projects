@@ -8,8 +8,10 @@ import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteQueryBuilder;
+import android.database.sqlite.SQLiteStatement;
 import android.net.Uri;
 import android.support.annotation.Nullable;
+import android.util.Log;
 
 /**
  * Created by Vogel on 6/5/2016.
@@ -29,6 +31,7 @@ public class NotepadProvider extends ContentProvider {
     static {
         queryBuilder = new SQLiteQueryBuilder();
         queryBuilder.setTables(NotepadContract.NoteEntry.TABLE_NAME_NOTE);
+        queryBuilder.setTables(NotepadContract.NoteEntry.TABLE_NAME_TASKS);
     }
 
     private static UriMatcher buildUriMatcher() {
@@ -36,8 +39,8 @@ public class NotepadProvider extends ContentProvider {
         final String authority = NotepadContract.AUTHORITY;
 
         matcher.addURI(authority, NotepadContract.PATH_NOTE, NOTE);
-        matcher.addURI(authority, NotepadContract.PATH_NOTE + "/#", NOTE_ID);
-        matcher.addURI(authority, NotepadContract.PATH_NOTE + "/#", TASK);
+        matcher.addURI(authority, NotepadContract.PATH_NOTE + "/", NOTE_ID);
+        matcher.addURI(authority, NotepadContract.PATH_NOTE + "/", TASK);
 
         return matcher;
     }
@@ -53,6 +56,19 @@ public class NotepadProvider extends ContentProvider {
     public Cursor query(Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
         Cursor cursor;
         final SQLiteDatabase db = openHelper.getReadableDatabase();
+
+        Cursor c = db.rawQuery("SELECT name FROM sqlite_master WHERE type='table'", null);
+
+        Log.i("tables", "Start");
+        if (c.moveToFirst()) {
+            while ( !c.isAfterLast() ) {
+                Log.i("tables", c.getString(0));
+                c.moveToNext();
+            }
+        }
+        Log.i("tables", "End");
+        Log.i("tables", String.valueOf(uri));
+        Log.i("tables", String.valueOf(uriMatcher.match(uri)));
 
         switch(uriMatcher.match(uri)){
             case NOTE:

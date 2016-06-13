@@ -38,6 +38,19 @@
                 />
         </android.support.design.widget.TextInputLayout>
 
+        <android.support.design.widget.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            <EditText
+                android:id="@+id/et_addTask"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Enter Task"
+                android:gravity="start|top"
+                android:visibility="invisible"
+                />
+        </android.support.design.widget.TextInputLayout>
+
         <android.support.design.widget.FloatingActionButton
             android:id="@+id/fab_task"
             android:layout_width="wrap_content"

@@ -3,13 +3,15 @@ package me.vogeldev.memopad.data;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.database.sqlite.SQLiteStatement;
+import android.util.Log;
 
 /**
  * Created by Vogel on 6/5/2016.
  */
 public class NotepadDbHelper extends SQLiteOpenHelper {
 
-    private static final int DATABASE_VERSION = 2;
+    private static final int DATABASE_VERSION = 3;
     private static final String DATABASE_NAME = "notepad.db";
 
     public NotepadDbHelper(Context context) {
@@ -47,5 +49,7 @@ public class NotepadDbHelper extends SQLiteOpenHelper {
         // This will need to change in the future to allow user data to persist
         db.execSQL("DROP TABLE IF EXISTS " + NotepadContract.NoteEntry.TABLE_NAME_NOTE);
         db.execSQL("DROP TABLE IF EXISTS " + NotepadContract.NoteEntry.TABLE_NAME_TASKS);
+
+        onCreate(db);
     }
 }
