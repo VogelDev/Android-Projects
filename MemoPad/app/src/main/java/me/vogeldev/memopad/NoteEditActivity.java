@@ -101,42 +101,36 @@ public class NoteEditActivity extends AppCompatActivity implements AdapterView.O
         tasks = new ArrayList<>();
         adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_activated_1, tasks);
 
-        getSupportLoaderManager().initLoader(TASKS_LOADER, null, this);
-        
         final ListView listView = (ListView)findViewById(R.id.listView_task);
-        listView.setAdapter(adapter);
+
+        String[] from = new String[] {NotepadContract.NoteEntry.COLUMN_TASK};
+        int[] to = new int[] {android.R.id.text1};
+        cursorAdapter = new SimpleCursorAdapter(this, android.R.layout.simple_list_item_1, null, from, to, 0);
+
+        listView.setAdapter(cursorAdapter);
         listView.setOnItemClickListener(this);
+        getSupportLoaderManager().initLoader(TASKS_LOADER, null, this);
 
-        SQLiteDatabase db = new NotepadDbHelper(this).getReadableDatabase();
-        cursor = db.query("task", null, "note_id = " + id, null, null, null, "_ID");
-        Log.i("DB_CHECK", Arrays.toString(cursor.getColumnNames()));
-        Log.i("DB_CHECK", String.valueOf(cursor.getCount()));
-        if(cursor.getCount() > 0){
-            cursor.moveToFirst();
-
-            do{
-                tasks.add(cursor.getString(2));
-                
-            }while(cursor.moveToNext());
-
-            adapter.notifyDataSetChanged();
-        }
-        cursor.close();
-        db.close();
         etTask = (EditText)findViewById(R.id.et_addTask);
 
         final FloatingActionButton fab = (FloatingActionButton)findViewById(R.id.fab_task);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                tasks.add(etTask.getText().toString());
 
-                ContentValues values = new ContentValues();
-                values.put(NotepadContract.NoteEntry.COLUMN_NOTE_ID, id);
-                values.put(NotepadContract.NoteEntry.COLUMN_TASK, etTask.getText().toString());
-                getContentResolver().insert(NotepadContract.NoteEntry.TASK_CONTENT_URI, values);
+                String input = etTask.getText().toString();
+                Log.i("TaskEntry - input", input);
+                Log.i("TaskEntry - spaces", input.replace(" ", ""));
+                Log.i("TaskEntry - isNotBlank?", String.valueOf(!input.replace(" ", "").equals("")));
+                if(!input.replace(" ", "").equals("")) {
+                    ContentValues values = new ContentValues();
+                    values.put(NotepadContract.NoteEntry.COLUMN_NOTE_ID, id);
+                    values.put(NotepadContract.NoteEntry.COLUMN_TASK, etTask.getText().toString());
+                    getContentResolver().insert(NotepadContract.NoteEntry.TASK_CONTENT_URI, values);
 
-                adapter.notifyDataSetChanged();
+                    cursorAdapter.notifyDataSetChanged();
+                }
+                etTask.setText("");
             }
         });
 
@@ -155,15 +149,19 @@ public class NoteEditActivity extends AppCompatActivity implements AdapterView.O
 
                 switch(position){
                     case 0:
-                        fab.setVisibility(View.INVISIBLE);
+                        fab.setVisibility(View.GONE);
                         etTask.setHint("");
                         etTask.setVisibility(View.GONE);
                         listView.setVisibility(View.GONE);
+
+                        etDesc.setVisibility(View.VISIBLE);
                         break;
                     case 1:
                         fab.setVisibility(View.VISIBLE);
                         etTask.setVisibility(View.VISIBLE);
                         listView.setVisibility(View.VISIBLE);
+
+                        etDesc.setVisibility(View.GONE);
                         break;
                 }
             }
@@ -205,8 +203,6 @@ public class NoteEditActivity extends AppCompatActivity implements AdapterView.O
 
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        tasks.remove(position);
-
         Log.i("Task ID", String.valueOf(id));
 
         // Deletes the given note from the db
@@ -216,7 +212,7 @@ public class NoteEditActivity extends AppCompatActivity implements AdapterView.O
                 null
         );
 
-        adapter.notifyDataSetChanged();
+        cursorAdapter.notifyDataSetChanged();
     }
 
     @Override

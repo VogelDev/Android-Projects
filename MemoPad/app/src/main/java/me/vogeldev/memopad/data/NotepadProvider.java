@@ -71,7 +71,7 @@ public class NotepadProvider extends ContentProvider {
             }
         }
         Log.i("tables", "End");
-        Log.i("tables", String.valueOf(uri));
+        Log.i("tables - URI - ", String.valueOf(uri));
         Log.i("tables", String.valueOf(uriMatcher.match(uri)));
 
         switch(uriMatcher.match(uri)){
@@ -94,6 +94,15 @@ public class NotepadProvider extends ContentProvider {
                         sortOrder);
                 break;
             case TASK:
+                cursor = db.query(NotepadContract.NoteEntry.TABLE_NAME_TASKS,
+                        projection,
+                        selection,
+                        selectionArgs,
+                        null,
+                        null,
+                        sortOrder);
+                break;
+            case TASK_ID:
                 cursor = db.query(NotepadContract.NoteEntry.TABLE_NAME_TASKS,
                         projection,
                         NotepadContract.NoteEntry.COLUMN_NOTE_ID + "='" + ContentUris.parseId(uri) + "'",
@@ -158,8 +167,8 @@ public class NotepadProvider extends ContentProvider {
         final SQLiteDatabase db = openHelper.getWritableDatabase();
         int rowsDeleted;
 
-        Log.i("DELETE_SELECTION", selection);
-        Log.i("DELETE_SELECTIONARGS", Arrays.toString(selectionArgs));
+//        Log.i("DELETE_SELECTION", selection);
+//        Log.i("DELETE_SELECTIONARGS", Arrays.toString(selectionArgs));
 
         switch (uriMatcher.match(uri)) {
             case NOTE:

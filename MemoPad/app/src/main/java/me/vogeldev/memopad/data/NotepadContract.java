@@ -20,7 +20,7 @@ public final class NotepadContract {
         public static final Uri TASK_CONTENT_URI = BASE_CONTENT_URI.buildUpon().appendPath(PATH_TASK).build();
 
         public static final String NOTE_CONTENT_TYPE = "vnd.android.cursor.dir/" + AUTHORITY + "/" + PATH_NOTE;
-        public static final String NOTE_CONTENT_ITEM_TYPE = "vnd.android.cursor.item/" + AUTHORITY + "/" + PATH_NOTE;
+        public static final String NOTE_CONTENT_ITEM_TYPE = "vnd.android.cursor.item/" + AUTHORITY + "/#" + PATH_NOTE;
 
         public static final String TABLE_NAME_NOTE = "note";
 
@@ -28,7 +28,7 @@ public final class NotepadContract {
         public static final String COLUMN_DESCRIPTION = "description";
 
         public static final String TASK_CONTENT_TYPE = "vnd.android.cursor.dir/" + AUTHORITY + "/" + PATH_TASK;
-        public static final String TASK_CONTENT_ITEM_TYPE = "vnd.android.cursor.item/" + AUTHORITY + "/" + PATH_TASK;
+        public static final String TASK_CONTENT_ITEM_TYPE = "vnd.android.cursor.item/" + AUTHORITY + "/#" + PATH_TASK;
 
         public static final String TABLE_NAME_TASKS = "task";
 
